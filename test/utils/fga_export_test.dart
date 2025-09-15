@@ -95,5 +95,27 @@ void main() {
         contains('at most two cards before an NP'),
       );
     });
+
+    test('NP later in the turn after too many normals is rejected', () {
+      final data = _shareDataWithAttacks([
+        [
+          _normalCard(),
+          _npCard(0),
+          _normalCard(cardType: CardType.quick),
+          _normalCard(cardType: CardType.arts),
+          _npCard(1),
+        ],
+      ]);
+      final warnings = <String>[];
+
+      final command = toFgaAutoSkillCommand(data, warnings: warnings);
+
+      expect(command, '0');
+      expect(warnings, hasLength(1));
+      expect(
+        warnings.single,
+        contains('at most two cards before an NP'),
+      );
+    });
   });
 }
