@@ -45,7 +45,9 @@ class BattleRuntime {
     required this.region,
     required this.originalOptions,
     required this.originalQuest,
-  });
+  }) {
+    battleData.runtime = this;
+  }
 
   BattleShareData getShareData({bool allowNotWin = false, bool isCritTeam = false, bool includeReplayData = true}) {
     assert(battleData.isBattleWin || allowNotWin);
@@ -82,6 +84,7 @@ class BattleData {
   BattleDelegate? delegate;
   BattleReplayDelegateData replayDataRecord = BattleReplayDelegateData();
   BattleOptionsRuntime options = BattleOptionsRuntime();
+  BattleRuntime? runtime;
   final BattleLogger battleLogger = BattleLogger();
   BuildContext? context;
 

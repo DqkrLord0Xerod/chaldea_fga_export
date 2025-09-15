@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image/image.dart' as img_lib;
 import 'package:screenshot/screenshot.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart' as launcher;
 
 import 'package:chaldea/app/app.dart';
 import 'package:chaldea/app/battle/models/battle.dart';
@@ -22,6 +24,7 @@ import 'package:chaldea/packages/app_info.dart';
 import 'package:chaldea/packages/platform/platform.dart';
 import 'package:chaldea/utils/utils.dart';
 import 'package:chaldea/widgets/widgets.dart';
+import 'package:chaldea/utils/fga_export.dart';
 import '../../quest/quest_card.dart';
 import '../formation/formation_card.dart';
 import 'svt_detail.dart';
@@ -56,6 +59,50 @@ class _BattleRecorderPanelState extends State<BattleRecorderPanel> {
   bool get showTwoColumn => db.settings.battleSim.recordShowTwoColumn;
 
   final controller = ScreenshotController();
+
+  bool get _canExportToFga {
+    final battleData = widget.battleData;
+    if (battleData == null || battleData.runtime == null) {
+      return false;
+    }
+    return battleData.recorder.toUploadRecords().isNotEmpty;
+  }
+
+  Future<void> _exportToFga() async {
+    final battleData = widget.battleData;
+    final runtime = battleData?.runtime;
+    if (battleData == null || runtime == null) {
+      EasyLoading.showError('Battle data unavailable.');
+      return;
+    }
+    try {
+      final shareData = runtime.getShareData(allowNotWin: true);
+      final config = toFgaBattleConfig(shareData);
+      final configJson = jsonEncode(config);
+      final deepLink = toFgaBattleConfigDeepLink(shareData);
+
+      bool launched = false;
+      try {
+        launched = await launcher.launchUrl(deepLink);
+      } catch (e, s) {
+        debugPrint('Failed to launch FGA deep link: $e');
+        debugPrintStack(stackTrace: s);
+        launched = false;
+      }
+
+      if (launched) {
+        EasyLoading.showSuccess('Opened in FGA.');
+        return;
+      }
+
+      await copyToClipboard(configJson);
+      EasyLoading.showSuccess('Copied FGA config to clipboard.');
+    } catch (e, s) {
+      debugPrint('Failed to export FGA config: $e');
+      debugPrintStack(stackTrace: s);
+      EasyLoading.showError('Failed to export FGA config.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +162,7 @@ class _BattleRecorderPanelState extends State<BattleRecorderPanel> {
   }
 
   Widget buildActions() {
+    final canExportToFga = _canExportToFga;
     return Row(
       children: [
         const SizedBox(width: 16),
@@ -169,6 +217,24 @@ class _BattleRecorderPanelState extends State<BattleRecorderPanel> {
           icon: const Icon(Icons.text_fields),
           color: showDetail ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).disabledColor,
           tooltip: 'Show svt/skill name',
+          visualDensity: VisualDensity.standard,
+        ),
+        IconButton(
+          onPressed: canExportToFga ? () => _exportToFga() : null,
+          icon: Builder(
+            builder: (context) {
+              final iconTheme = IconTheme.of(context);
+              final color = iconTheme.color ?? Theme.of(context).iconTheme.color;
+              return Text(
+                'FGA',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              );
+            },
+          ),
+          tooltip: 'Export to FGA',
           visualDensity: VisualDensity.standard,
         ),
         IconButton(
