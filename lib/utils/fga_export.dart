@@ -7,7 +7,8 @@ const _kDefaultCardPriority = 'WB, WA, WQ, B, A, Q, RB, RA, RQ';
 const _kDefaultServantPriority = '1,2,3,4,5,6';
 
 Map<String, dynamic> toFgaBattleConfig(BattleShareData data) {
-  final autoskillCommand = toFgaAutoSkillCommand(data);
+  final warnings = <String>[];
+  final autoskillCommand = toFgaAutoSkillCommand(data, warnings: warnings);
   final quest = data.quest;
   final questNotes = <String>[];
   if (quest != null) {
@@ -21,6 +22,10 @@ Map<String, dynamic> toFgaBattleConfig(BattleShareData data) {
   final autoskillNotes = [
     'Imported from Chaldea',
     ...questNotes,
+    if (warnings.isNotEmpty) ...[
+      'Warnings:',
+      for (final warning in warnings) '- $warning',
+    ],
   ].join('\n');
 
   return {
@@ -69,7 +74,7 @@ Uri toFgaBattleConfigDeepLink(BattleShareData data) {
   return Uri(scheme: 'fga', host: 'config', queryParameters: {'data': encoded});
 }
 
-String toFgaAutoSkillCommand(BattleShareData data) {
+String toFgaAutoSkillCommand(BattleShareData data, {List<String>? warnings}) {
   final waves = <List<String>>[];
   var currentWave = <String>[];
   var currentTurn = <String>[];
@@ -134,7 +139,7 @@ String toFgaAutoSkillCommand(BattleShareData data) {
         }
         break;
       case BattleRecordDataType.attack:
-        final attackToken = _attackToken(record.attacks);
+        final attackToken = _attackToken(record.attacks, warnings: warnings);
         if (attackToken != null && attackToken.isNotEmpty) {
           currentTurn.add(attackToken);
         }
@@ -211,11 +216,19 @@ bool _looksLikeOrderChangeSkill(BattleRecordData record) {
   return skillIndex == 1;
 }
 
-String? _attackToken(List<BattleAttackRecordData>? attacks) {
+/// Converts a recorded attack action into the compact representation expected by
+/// FGA's AutoSkill format.
+///
+/// The format can only express NP cards that appear within the first three
+/// command cards of a turn. Any additional face cards after the first NP are
+/// ignored because FGA will automatically select them. If an NP would trigger
+/// after more than two normal cards, the export falls back to a face-card-only
+/// attack and records a warning so the user is aware of the mismatch.
+String? _attackToken(List<BattleAttackRecordData>? attacks, {List<String>? warnings}) {
   if (attacks == null || attacks.isEmpty) {
     return '0';
   }
-  final nps = <_CommandCardNp>{};
+  final nps = SplayTreeSet<_CommandCardNp>((a, b) => a.code.compareTo(b.code));
   var normalCardsBeforeNp = 0;
   var seenNp = false;
 
@@ -235,12 +248,18 @@ String? _attackToken(List<BattleAttackRecordData>? attacks) {
     return '0';
   }
 
+  if (normalCardsBeforeNp > 2) {
+    warnings?.add(
+      'Encountered an NP after $normalCardsBeforeNp normal cards. FGA only supports at most two cards before an NP; the NP will be skipped.',
+    );
+    return '0';
+  }
+
   final buffer = StringBuffer();
   if (normalCardsBeforeNp > 0) {
     buffer..write('n')..write(normalCardsBeforeNp);
   }
-  final sortedNps = nps.toList()..sort((a, b) => a.code.compareTo(b.code));
-  for (final np in sortedNps) {
+  for (final np in nps) {
     buffer.write(np.code);
   }
   return buffer.toString();
