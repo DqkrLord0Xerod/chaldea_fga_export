@@ -41,6 +41,25 @@ For more details or usage, please check our document: [English](https://docs.cha
 - controllable random number for damage and NP calculation
 - support custom skill to simulate some enemy/field AI effects
 
+## Exporting to FGA
+
+Laplace's battle recorder toolbar now includes an **FGA** button that triggers the export routine for the current simulation.【F:lib/app/modules/battle/simulation/recorder.dart†L222-L239】 When tapped, Chaldea converts the battle into Fate/Grand Automata's AutoSkill format, attempts to hand it off through the `fga://config` deep link, and falls back to copying the JSON payload to your clipboard when no handler is available.【F:lib/app/modules/battle/simulation/recorder.dart†L71-L104】【F:lib/utils/fga_export.dart†L66-L75】
+
+The generated JSON mirrors FGA's battle configuration, including the translated AutoSkill command string, quest notes (with any warnings), and the default card and support preferences expected by the client.【F:lib/utils/fga_export.dart†L9-L57】 You can paste the clipboard contents into FGA's import dialog or rely on the deep link when the Android app is installed.
+
+FGA cannot replay turns where a Noble Phantasm appears after more than two normal cards. When Chaldea detects that pattern it exports the turn as a face-card-only attack and records a warning in the notes so you can tweak the script manually.【F:lib/utils/fga_export.dart†L223-L247】
+
+| Chaldea action | FGA code |
+| -------------- | -------- |
+| Target left / middle / right enemy | `t1` / `t2` / `t3`【F:lib/utils/fga_export.dart†L170-L182】 |
+| Servant 1 skills 1‒3 | `a` / `b` / `c`【F:lib/utils/fga_export.dart†L184-L190】 |
+| Servant 2 skills 1‒3 | `d` / `e` / `f`【F:lib/utils/fga_export.dart†L184-L190】 |
+| Servant 3 skills 1‒3 | `g` / `h` / `i`【F:lib/utils/fga_export.dart†L184-L190】 |
+| Mystic Code skills 1‒3 | `j` / `k` / `l`【F:lib/utils/fga_export.dart†L192-L197】 |
+| NP from frontline slots A / B / C | `4` / `5` / `6`【F:lib/utils/fga_export.dart†L309-L329】 |
+| Normal-card opener (before NP) | `n#` prefix (for example `n1` for one card)【F:lib/utils/fga_export.dart†L232-L272】 |
+| Face-card-only attack | `0`【F:lib/utils/fga_export.dart†L232-L272】 |
+
 ## Supported Platforms
 
 | Platform | Minimum Version            |
