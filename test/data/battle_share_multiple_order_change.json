@@ -1,0 +1,100 @@
+{
+  "name": "Back-to-back order changes",
+  "share": {
+    "quest": {
+      "id": 9402004,
+      "phase": 3,
+      "enemyHash": "doubleorder",
+      "region": "na"
+    },
+    "team": {
+      "name": "Swap Parade",
+      "mysticCode": {
+        "mysticCodeId": 9700020,
+        "level": 10
+      },
+      "onFieldSvts": [
+        {
+          "svtId": 100500,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100600,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100700,
+          "skillLvs": [10, 10, 10]
+        }
+      ],
+      "backupSvts": [
+        {
+          "svtId": 100800,
+          "skillLvs": [9, 9, 9]
+        },
+        {
+          "svtId": 100900,
+          "skillLvs": [9, 9, 9]
+        }
+      ]
+    },
+    "delegate": {
+      "replaceMemberIndexes": [
+        [0, 2],
+        [1, 0]
+      ]
+    },
+    "actions": [
+      {
+        "type": "skill",
+        "skill": 1
+      },
+      {
+        "type": "skill",
+        "svt": 0,
+        "skill": 0
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 0,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "skill",
+        "skill": 1
+      },
+      {
+        "type": "skill",
+        "svt": 1,
+        "skill": 2
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 1,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "kx134,kx21f5",
+    "fields": {
+      "autoskill_name": "Swap Parade",
+      "battle_config_server": "En"
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Quest 9402004/3 (NA)",
+      "Enemy hash doubleorder"
+    ]
+  }
+}

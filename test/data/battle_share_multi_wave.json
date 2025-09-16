@@ -1,0 +1,143 @@
+{
+  "name": "Three-wave mixed NP setup",
+  "share": {
+    "quest": {
+      "id": 9202001,
+      "phase": 2,
+      "enemyHash": "triplewave",
+      "region": "jp"
+    },
+    "team": {
+      "name": "Triple Wave",
+      "mysticCode": {
+        "mysticCodeId": 9700010,
+        "level": 10
+      },
+      "onFieldSvts": [
+        {
+          "svtId": 100100,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90
+        },
+        {
+          "svtId": 100200,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90
+        },
+        {
+          "svtId": 100300,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90
+        }
+      ],
+      "backupSvts": [
+        {
+          "svtId": 100400,
+          "skillLvs": [9, 9, 9]
+        }
+      ]
+    },
+    "actions": [
+      {
+        "type": "skill",
+        "svt": 0,
+        "skill": 0
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 0,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "base"
+      },
+      {
+        "type": "skill",
+        "svt": 1,
+        "skill": 2
+      },
+      {
+        "type": "skill",
+        "skill": 0
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": false,
+            "cardType": "buster"
+          },
+          {
+            "svt": 1,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "skill",
+        "svt": 2,
+        "skill": 0
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "base"
+      },
+      {
+        "type": "skill",
+        "svt": 0,
+        "skill": 2
+      },
+      {
+        "type": "skill",
+        "svt": 1,
+        "skill": 1
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": true,
+            "cardType": "arts"
+          },
+          {
+            "svt": 0,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "a4,#,fjn15,g6,#,ce46",
+    "fields": {
+      "autoskill_name": "Triple Wave",
+      "battle_config_server": "Jp"
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Quest 9202001/2 (JP)",
+      "Enemy hash triplewave"
+    ]
+  }
+}

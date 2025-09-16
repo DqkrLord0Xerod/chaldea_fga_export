@@ -1,0 +1,110 @@
+{
+  "name": "Frequent target switches",
+  "share": {
+    "quest": {
+      "id": 9105007,
+      "phase": 1,
+      "enemyHash": "targetdance",
+      "region": "na"
+    },
+    "team": {
+      "name": "Target Dance",
+      "mysticCode": {
+        "mysticCodeId": 9700010,
+        "level": 10
+      },
+      "onFieldSvts": [
+        {
+          "svtId": 100100,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100200,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100300,
+          "skillLvs": [10, 10, 10]
+        }
+      ],
+      "backupSvts": []
+    },
+    "actions": [
+      {
+        "type": "skill",
+        "svt": 1,
+        "skill": 0,
+        "options": {
+          "enemyTarget": 1
+        }
+      },
+      {
+        "type": "skill",
+        "svt": 2,
+        "skill": 2,
+        "options": {
+          "enemyTarget": 2
+        }
+      },
+      {
+        "type": "skill",
+        "svt": 0,
+        "skill": 1,
+        "options": {
+          "enemyTarget": 0
+        }
+      },
+      {
+        "type": "attack",
+        "options": {
+          "enemyTarget": 2
+        },
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": false,
+            "cardType": "arts"
+          },
+          {
+            "svt": 1,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "skill",
+        "svt": 2,
+        "skill": 0,
+        "options": {
+          "enemyTarget": 0
+        }
+      },
+      {
+        "type": "attack",
+        "options": {
+          "enemyTarget": 1
+        },
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "t2dt3it1bt3n15,t1gt26",
+    "fields": {
+      "autoskill_name": "Target Dance",
+      "battle_config_server": "En"
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Quest 9105007/1 (NA)",
+      "Enemy hash targetdance"
+    ]
+  }
+}
