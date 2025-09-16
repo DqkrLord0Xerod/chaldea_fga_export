@@ -219,28 +219,41 @@ bool _looksLikeOrderChangeSkill(BattleRecordData record) {
 /// Converts a recorded attack action into the compact representation expected by
 /// FGA's AutoSkill format.
 ///
-/// The format can only express NP cards that appear within the first three
-/// command cards of a turn. Any additional face cards after the first NP are
-/// ignored because FGA will automatically select them. If an NP would trigger
-/// after more than two normal cards, the export falls back to a face-card-only
-/// attack and records a warning so the user is aware of the mismatch.
+/// The exporter relies on a few assumptions about the recorded command cards:
+///
+/// * Every NP in the turn must appear within the first three cards. If an NP is
+///   detected after more than two normal cards, the turn is exported as
+///   face-card-only and a warning is recorded so the user can review the
+///   mismatch.
+/// * Multiple NPs in the same turn are treated as a set and ordered by the
+///   servants' field slots (A → C) to match how FGA expects to receive them.
+/// * Remaining face cards are ignored—FGA will automatically play whatever
+///   normal cards are still available after the encoded NP sequence.
 String? _attackToken(List<BattleAttackRecordData>? attacks, {List<String>? warnings}) {
   if (attacks == null || attacks.isEmpty) {
     return '0';
   }
-  final nps = SplayTreeSet<_CommandCardNp>((a, b) => a.code.compareTo(b.code));
-  var normalCardsBeforeNp = 0;
-  var seenNp = false;
+  final nps = SplayTreeSet<_CommandCardNp>((a, b) => a.index.compareTo(b.index));
+  var normalCardCount = 0;
+  int? normalCardsBeforeFirstNp;
 
   for (final card in attacks) {
     if (card.isTD) {
+      if (normalCardCount > 2) {
+        warnings?.add(
+          'Encountered an NP after $normalCardCount normal cards. FGA only supports at most two cards before an NP; the NP will be skipped.',
+        );
+        return '0';
+      }
+
+      normalCardsBeforeFirstNp ??= normalCardCount;
+
       final np = _CommandCardNp.fromSvtIndex(card.svt);
       if (np != null) {
         nps.add(np);
       }
-      seenNp = true;
-    } else if (!seenNp) {
-      normalCardsBeforeNp += 1;
+    } else {
+      normalCardCount += 1;
     }
   }
 
@@ -248,16 +261,10 @@ String? _attackToken(List<BattleAttackRecordData>? attacks, {List<String>? warni
     return '0';
   }
 
-  if (normalCardsBeforeNp > 2) {
-    warnings?.add(
-      'Encountered an NP after $normalCardsBeforeNp normal cards. FGA only supports at most two cards before an NP; the NP will be skipped.',
-    );
-    return '0';
-  }
-
   final buffer = StringBuffer();
-  if (normalCardsBeforeNp > 0) {
-    buffer..write('n')..write(normalCardsBeforeNp);
+  final leadingNormalCards = normalCardsBeforeFirstNp ?? 0;
+  if (leadingNormalCards > 0) {
+    buffer..write('n')..write(leadingNormalCards);
   }
   for (final np in nps) {
     buffer.write(np.code);
