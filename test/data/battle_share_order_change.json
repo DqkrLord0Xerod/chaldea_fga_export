@@ -9,6 +9,10 @@
     },
     "team": {
       "name": "Order Change Setup",
+      "mysticCode": {
+        "mysticCodeId": 9700020,
+        "level": 10
+      },
       "onFieldSvts": [
         {
           "svtId": 100500,
