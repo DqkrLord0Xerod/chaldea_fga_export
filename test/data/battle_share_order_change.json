@@ -1,0 +1,67 @@
+{
+  "name": "Order change setup",
+  "share": {
+    "quest": {
+      "id": 9401002,
+      "phase": 3,
+      "enemyHash": "orderchange",
+      "region": "jp"
+    },
+    "team": {
+      "name": "Order Change Setup",
+      "onFieldSvts": [
+        {
+          "svtId": 100500,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100600,
+          "skillLvs": [10, 10, 10]
+        },
+        {
+          "svtId": 100700,
+          "skillLvs": [10, 10, 10]
+        }
+      ],
+      "backupSvts": [
+        {
+          "svtId": 100800,
+          "skillLvs": [9, 9, 9]
+        }
+      ]
+    },
+    "delegate": {
+      "replaceMemberIndexes": [
+        [0, 2]
+      ]
+    },
+    "actions": [
+      {
+        "type": "skill",
+        "skill": 1
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 2,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "kx136",
+    "fields": {
+      "autoskill_name": "Order Change Setup",
+      "battle_config_server": "Jp"
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Quest 9401002/3 (JP)",
+      "Enemy hash orderchange"
+    ]
+  }
+}

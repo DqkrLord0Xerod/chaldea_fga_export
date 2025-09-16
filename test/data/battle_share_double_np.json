@@ -1,0 +1,104 @@
+{
+  "name": "Double NP door farm",
+  "share": {
+    "quest": {
+      "id": 9104010,
+      "phase": 1,
+      "enemyHash": "abc123",
+      "region": "na"
+    },
+    "team": {
+      "name": "Door Farming",
+      "mysticCode": {
+        "mysticCodeId": 9700010,
+        "level": 10
+      },
+      "onFieldSvts": [
+        {
+          "svtId": 100100,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90,
+          "ceId": 9400350,
+          "ceLimitBreak": true,
+          "ceLv": 100
+        },
+        {
+          "svtId": 100200,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90
+        },
+        {
+          "svtId": 100300,
+          "skillLvs": [10, 10, 10],
+          "tdLv": 5,
+          "lv": 90
+        }
+      ],
+      "backupSvts": []
+    },
+    "actions": [
+      {
+        "type": "skill",
+        "svt": 0,
+        "skill": 0
+      },
+      {
+        "type": "skill",
+        "skill": 2
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 0,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      },
+      {
+        "type": "base"
+      },
+      {
+        "type": "skill",
+        "svt": 1,
+        "skill": 2,
+        "options": {
+          "enemyTarget": 2
+        }
+      },
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 1,
+            "isTD": true,
+            "cardType": "arts"
+          },
+          {
+            "svt": 2,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "a4,#,t3f56",
+    "fields": {
+      "autoskill_name": "Door Farming",
+      "battle_config_server": "En",
+      "shuffle_cards": "None",
+      "support_mode": "Preferred",
+      "use_servant_priority": false
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Quest 9104010/1 (NA)",
+      "Enemy hash abc123"
+    ]
+  }
+}
