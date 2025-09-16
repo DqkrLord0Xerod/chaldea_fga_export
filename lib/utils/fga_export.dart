@@ -5,6 +5,8 @@ import '../models/userdata/battle.dart';
 
 const _kDefaultCardPriority = 'WB, WA, WQ, B, A, Q, RB, RA, RQ';
 const _kDefaultServantPriority = '1,2,3,4,5,6';
+// Known mystic code IDs whose kits provide Order Change.
+const _kOrderChangeMysticCodeIds = <int>{20, 210};
 
 Map<String, dynamic> toFgaBattleConfig(BattleShareData data) {
   final warnings = <String>[];
@@ -80,6 +82,7 @@ String toFgaAutoSkillCommand(BattleShareData data, {List<String>? warnings}) {
   var currentTurn = <String>[];
   int? currentEnemyTarget = 0;
   final orderChanges = ListQueue<List<int>>.from(data.delegate?.replaceMemberIndexes ?? const []);
+  final mysticCodeId = data.formation.mysticCode.mysticCodeId;
 
   void finalizeTurn() {
     if (currentTurn.isEmpty) {
@@ -130,7 +133,7 @@ String toFgaAutoSkillCommand(BattleShareData data, {List<String>? warnings}) {
         if (token != null) {
           currentTurn.add(token);
         }
-        if (record.svt == null && _looksLikeOrderChangeSkill(record) && orderChanges.isNotEmpty) {
+        if (record.svt == null && _looksLikeOrderChangeSkill(record, mysticCodeId) && orderChanges.isNotEmpty) {
           final change = orderChanges.removeFirst();
           final orderToken = _orderChangeToken(change);
           if (orderToken != null) {
@@ -208,12 +211,24 @@ String? _orderChangeToken(List<int> pair) {
   return 'x${starting + 1}${sub + 1}';
 }
 
-bool _looksLikeOrderChangeSkill(BattleRecordData record) {
+bool _looksLikeOrderChangeSkill(BattleRecordData record, int? mysticCodeId) {
   final skillIndex = record.skill;
-  if (skillIndex == null) {
+  if (skillIndex == null || mysticCodeId == null) {
+    return false;
+  }
+  if (!_isOrderChangeMysticCode(mysticCodeId)) {
     return false;
   }
   return skillIndex == 1;
+}
+
+bool _isOrderChangeMysticCode(int mysticCodeId) {
+  final normalizedId = mysticCodeId.abs();
+  if (_kOrderChangeMysticCodeIds.contains(normalizedId)) {
+    return true;
+  }
+  final lastThreeDigits = normalizedId % 1000;
+  return lastThreeDigits != normalizedId && _kOrderChangeMysticCodeIds.contains(lastThreeDigits);
 }
 
 /// Converts a recorded attack action into the compact representation expected by

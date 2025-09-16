@@ -187,6 +187,29 @@ void main() {
     });
   });
 
+  group('FGA order change detection', () {
+    test('non-order-change mystic codes do not emit swap tokens', () {
+      final data = BattleShareData(
+        quest: null,
+        formation: BattleTeamFormation(
+          mysticCode: MysticCodeSaveData(mysticCodeId: 9700010, level: 10),
+        ),
+        delegate: BattleReplayDelegateData(
+          replaceMemberIndexes: [
+            [0, 1],
+          ],
+        ),
+        actions: [
+          BattleRecordData.skill(skill: 1),
+        ],
+      );
+
+      final command = toFgaAutoSkillCommand(data);
+
+      expect(command, 'k');
+    });
+  });
+
   group('FGA battle config fixtures', () {
     final fixtures = _loadBattleConfigFixtures();
 
