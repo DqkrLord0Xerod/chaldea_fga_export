@@ -30,17 +30,20 @@ Map<String, dynamic> toFgaBattleConfig(BattleShareData data) {
     ],
   ].join('\n');
 
+  final cardPriority = _cardPriorityString(data);
+  final servantPriority = _servantPriorityString(data);
+
   return {
     'autoskill_name': (data.formation.name ?? '').trim().isEmpty ? '--' : data.formation.name,
     'autoskill_cmd': autoskillCommand,
     'autoskill_notes': autoskillNotes,
-    'card_priority': _kDefaultCardPriority,
+    'card_priority': cardPriority,
     'auto_skill_rearrange_cards': '',
     'auto_skill_brave_chains': '',
     'shuffle_cards': 'None',
     'shuffle_cards_wave': 3,
-    'use_servant_priority': false,
-    'servant_priority': _kDefaultServantPriority,
+    'use_servant_priority': servantPriority != null,
+    'servant_priority': servantPriority ?? _kDefaultServantPriority,
     'spam_x': _defaultSpamConfigJson,
     'autoskill_party': -1,
     'battle_config_mat': <String>{},
@@ -182,6 +185,36 @@ String? _enemyTargetToken(int target) {
     return null;
   }
   return 't${target + 1}';
+}
+
+String _cardPriorityString(BattleShareData data) {
+  final priority = data.fgaCardPriority ?? data.formation.fgaCardPriority;
+  if (priority == null || priority.isEmpty) {
+    return _kDefaultCardPriority;
+  }
+  final waves = priority
+      .map((wave) => wave.where((token) => token.isNotEmpty).join(', '))
+      .where((wave) => wave.isNotEmpty)
+      .toList();
+  if (waves.isEmpty) {
+    return _kDefaultCardPriority;
+  }
+  return waves.join('\n');
+}
+
+String? _servantPriorityString(BattleShareData data) {
+  final priority = data.fgaServantPriority ?? data.formation.fgaServantPriority;
+  if (priority == null || priority.isEmpty) {
+    return null;
+  }
+  final waves = priority
+      .map((wave) => wave.map((value) => value.toString()).join(','))
+      .where((wave) => wave.isNotEmpty)
+      .toList();
+  if (waves.isEmpty) {
+    return null;
+  }
+  return waves.join('\n');
 }
 
 String? _servantSkillToken(int svtIndex, int? skillIndex) {

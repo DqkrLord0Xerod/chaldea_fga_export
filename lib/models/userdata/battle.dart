@@ -184,7 +184,11 @@ class BattleShareData {
   }) : options = options ?? BattleShareDataOption(),
        actions = actions ?? [];
 
-  factory BattleShareData.fromJson(Map<String, dynamic> json) => _$BattleShareDataFromJson(json);
+  factory BattleShareData.fromJson(Map<String, dynamic> json) {
+    final data = _$BattleShareDataFromJson(json);
+    _attachFgaPrioritiesToShareData(data, json);
+    return data;
+  }
 
   Map<String, dynamic> toJson() {
     // final team2 = BattleTeamFormation.fromJson(formation.toJson());
@@ -192,7 +196,7 @@ class BattleShareData {
     //   svt?.customPassives.clear();
     //   svt?.customPassiveLvs.clear();
     // }
-    return _$BattleShareDataToJson(
+    final json = _$BattleShareDataToJson(
       BattleShareData(
         minBuild: kMinBuild,
         appBuild: appBuild ?? AppInfo.buildNumber,
@@ -203,6 +207,8 @@ class BattleShareData {
         actions: actions,
       ),
     );
+    _writeFgaPrioritiesToShareDataJson(this, json);
+    return json;
   }
 
   BattleShareData copy() {
@@ -343,6 +349,289 @@ class BattleQuestInfo {
   }
 }
 
+final _shareCardPriorityExpando = Expando<List<List<String>>?>('_shareCardPriority');
+final _shareServantPriorityExpando = Expando<List<List<int>>?>('_shareServantPriority');
+final _formationCardPriorityExpando = Expando<List<List<String>>?>('_formationCardPriority');
+final _formationServantPriorityExpando = Expando<List<List<int>>?>('_formationServantPriority');
+
+extension BattleShareDataFgaMetadata on BattleShareData {
+  List<List<String>>? get fgaCardPriority => _shareCardPriorityExpando[this];
+  set fgaCardPriority(List<List<String>>? value) => _shareCardPriorityExpando[this] = _normalizeCardPriority(value);
+
+  List<List<int>>? get fgaServantPriority => _shareServantPriorityExpando[this];
+  set fgaServantPriority(List<List<int>>? value) => _shareServantPriorityExpando[this] = _normalizeServantPriority(value);
+}
+
+extension BattleTeamFormationFgaMetadata on BattleTeamFormation {
+  List<List<String>>? get fgaCardPriority => _formationCardPriorityExpando[this];
+  set fgaCardPriority(List<List<String>>? value) => _formationCardPriorityExpando[this] = _normalizeCardPriority(value);
+
+  List<List<int>>? get fgaServantPriority => _formationServantPriorityExpando[this];
+  set fgaServantPriority(List<List<int>>? value) => _formationServantPriorityExpando[this] = _normalizeServantPriority(value);
+}
+
+void _attachFgaPrioritiesToShareData(BattleShareData data, Map<String, dynamic> json) {
+  data.fgaCardPriority ??= _parseFgaCardPriority(json['cardPriority']);
+  data.fgaServantPriority ??= _parseFgaServantPriority(json['servantPriority']);
+
+  data.formation.fgaCardPriority ??= data.fgaCardPriority;
+  data.formation.fgaServantPriority ??= data.fgaServantPriority;
+
+  final teamRaw = json['team'];
+  if (teamRaw is Map) {
+    final teamJson = (teamRaw as Map).cast<String, dynamic>();
+    final teamCardPriority = _parseFgaCardPriority(teamJson['cardPriority']);
+    if (teamCardPriority != null) {
+      data.formation.fgaCardPriority = teamCardPriority;
+      data.fgaCardPriority ??= teamCardPriority;
+    }
+    final teamServantPriority = _parseFgaServantPriority(teamJson['servantPriority']);
+    if (teamServantPriority != null) {
+      data.formation.fgaServantPriority = teamServantPriority;
+      data.fgaServantPriority ??= teamServantPriority;
+    }
+  }
+}
+
+void _writeFgaPrioritiesToShareDataJson(BattleShareData data, Map<String, dynamic> json) {
+  final cardPriority = data.fgaCardPriority;
+  if (cardPriority != null) {
+    json['cardPriority'] = _serializeCardPriority(cardPriority);
+  }
+  final servantPriority = data.fgaServantPriority;
+  if (servantPriority != null) {
+    json['servantPriority'] = _serializeServantPriority(servantPriority);
+  }
+
+  final teamJson = json['team'];
+  if (teamJson is Map<String, dynamic>) {
+    final formationCardPriority = data.formation.fgaCardPriority;
+    if (formationCardPriority != null) {
+      teamJson['cardPriority'] = _serializeCardPriority(formationCardPriority);
+    }
+    final formationServantPriority = data.formation.fgaServantPriority;
+    if (formationServantPriority != null) {
+      teamJson['servantPriority'] = _serializeServantPriority(formationServantPriority);
+    }
+  }
+}
+
+void _attachFgaPrioritiesToFormation(BattleTeamFormation formation, Map<String, dynamic> json) {
+  final cardPriority = _parseFgaCardPriority(json['cardPriority']);
+  if (cardPriority != null) {
+    formation.fgaCardPriority = cardPriority;
+  }
+  final servantPriority = _parseFgaServantPriority(json['servantPriority']);
+  if (servantPriority != null) {
+    formation.fgaServantPriority = servantPriority;
+  }
+}
+
+void _writeFgaPrioritiesToFormationJson(BattleTeamFormation formation, Map<String, dynamic> json) {
+  final cardPriority = formation.fgaCardPriority;
+  if (cardPriority != null) {
+    json['cardPriority'] = _serializeCardPriority(cardPriority);
+  }
+  final servantPriority = formation.fgaServantPriority;
+  if (servantPriority != null) {
+    json['servantPriority'] = _serializeServantPriority(servantPriority);
+  }
+}
+
+List<List<String>>? _parseFgaCardPriority(dynamic raw) {
+  if (raw == null) {
+    return null;
+  }
+  if (raw is String) {
+    final result = <List<String>>[];
+    for (final wave in raw.split(RegExp(r'\r?\n'))) {
+      final tokens = <String>[];
+      for (final token in wave.split(',')) {
+        final text = _asTrimmedString(token);
+        if (text != null) {
+          tokens.add(text);
+        }
+      }
+      if (tokens.isNotEmpty) {
+        result.add(tokens);
+      }
+    }
+    return _normalizeCardPriority(result);
+  }
+  if (raw is Iterable) {
+    final result = <List<String>>[];
+    var sawNested = false;
+    for (final element in raw) {
+      if (element is Iterable) {
+        sawNested = true;
+        final wave = <String>[];
+        for (final token in element) {
+          final text = _asTrimmedString(token);
+          if (text != null) {
+            wave.add(text);
+          }
+        }
+        if (wave.isNotEmpty) {
+          result.add(wave);
+        }
+      }
+    }
+    if (sawNested) {
+      return _normalizeCardPriority(result);
+    }
+    final singleWave = <String>[];
+    for (final token in raw) {
+      final text = _asTrimmedString(token);
+      if (text != null) {
+        singleWave.add(text);
+      }
+    }
+    if (singleWave.isEmpty) {
+      return null;
+    }
+    return _normalizeCardPriority([singleWave]);
+  }
+  return null;
+}
+
+List<List<int>>? _parseFgaServantPriority(dynamic raw) {
+  if (raw == null) {
+    return null;
+  }
+  if (raw is String) {
+    final waves = raw.split(RegExp(r'\r?\n'));
+    final parsed = <List<int>>[];
+    for (final wave in waves) {
+      final entries = <int>[];
+      for (final token in wave.split(',')) {
+        final value = _asInt(token);
+        if (value != null && value > 0) {
+          entries.add(value);
+        }
+      }
+      if (entries.isNotEmpty) {
+        parsed.add(entries);
+      }
+    }
+    return _normalizeServantPriority(parsed);
+  }
+  if (raw is Iterable) {
+    final result = <List<int>>[];
+    var sawNested = false;
+    for (final element in raw) {
+      if (element is Iterable) {
+        sawNested = true;
+        final wave = <int>[];
+        for (final entry in element) {
+          final value = _asInt(entry);
+          if (value != null && value > 0) {
+            wave.add(value);
+          }
+        }
+        if (wave.isNotEmpty) {
+          result.add(wave);
+        }
+      }
+    }
+    if (sawNested) {
+      return _normalizeServantPriority(result);
+    }
+    final singleWave = <int>[];
+    for (final entry in raw) {
+      final value = _asInt(entry);
+      if (value != null && value > 0) {
+        singleWave.add(value);
+      }
+    }
+    if (singleWave.isEmpty) {
+      return null;
+    }
+    return _normalizeServantPriority([singleWave]);
+  }
+  return null;
+}
+
+String? _asTrimmedString(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  final text = value.toString().trim();
+  if (text.isEmpty) {
+    return null;
+  }
+  return text;
+}
+
+int? _asInt(dynamic value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  if (value is String) {
+    final text = value.trim();
+    if (text.isEmpty) {
+      return null;
+    }
+    return int.tryParse(text);
+  }
+  return null;
+}
+
+List<List<String>>? _normalizeCardPriority(List<List<String>>? value) {
+  if (value == null) {
+    return null;
+  }
+  final normalized = <List<String>>[];
+  for (final wave in value) {
+    final cleaned = <String>[];
+    for (final token in wave) {
+      final text = token.trim();
+      if (text.isNotEmpty) {
+        cleaned.add(text);
+      }
+    }
+    if (cleaned.isNotEmpty) {
+      normalized.add(List.unmodifiable(cleaned));
+    }
+  }
+  if (normalized.isEmpty) {
+    return null;
+  }
+  return List.unmodifiable(normalized);
+}
+
+List<List<int>>? _normalizeServantPriority(List<List<int>>? value) {
+  if (value == null) {
+    return null;
+  }
+  final normalized = <List<int>>[];
+  for (final wave in value) {
+    final cleaned = <int>[];
+    for (final entry in wave) {
+      if (entry > 0) {
+        cleaned.add(entry);
+      }
+    }
+    if (cleaned.isNotEmpty) {
+      normalized.add(List.unmodifiable(cleaned));
+    }
+  }
+  if (normalized.isEmpty) {
+    return null;
+  }
+  return List.unmodifiable(normalized);
+}
+
+List<List<String>> _serializeCardPriority(List<List<String>> priority) {
+  return priority.map((wave) => List<String>.from(wave)).toList();
+}
+
+List<List<int>> _serializeServantPriority(List<List<int>> priority) {
+  return priority.map((wave) => List<int>.from(wave)).toList();
+}
+
 @JsonSerializable()
 class BattleTeamFormation {
   String? name;
@@ -362,9 +651,17 @@ class BattleTeamFormation {
   BattleTeamFormation.fromList({String? name, MysticCodeSaveData? mysticCode, List<SvtSaveData?>? svts})
     : this(name: name, mysticCode: mysticCode, onFieldSvts: svts?.take(3).toList(), backupSvts: svts?.skip(3).toList());
 
-  factory BattleTeamFormation.fromJson(Map<String, dynamic> json) => _$BattleTeamFormationFromJson(json);
+  factory BattleTeamFormation.fromJson(Map<String, dynamic> json) {
+    final formation = _$BattleTeamFormationFromJson(json);
+    _attachFgaPrioritiesToFormation(formation, json);
+    return formation;
+  }
 
-  Map<String, dynamic> toJson() => _$BattleTeamFormationToJson(this);
+  Map<String, dynamic> toJson() {
+    final json = _$BattleTeamFormationToJson(this);
+    _writeFgaPrioritiesToFormationJson(this, json);
+    return json;
+  }
 
   BattleTeamFormation copy() => BattleTeamFormation.fromJson(toJson());
 
