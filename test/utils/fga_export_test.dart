@@ -219,6 +219,18 @@ void main() {
 
     for (final fixture in fixtures) {
       test(fixture.name, () {
+        final warnings = <String>[];
+        final command = toFgaAutoSkillCommand(
+          fixture.data,
+          warnings: warnings,
+        );
+
+        expect(
+          command,
+          fixture.expectedCommand,
+          reason: 'Fixture ${fixture.path} produced an unexpected AutoSkill command.',
+        );
+
         final config = toFgaBattleConfig(fixture.data);
 
         expect(
@@ -238,6 +250,27 @@ void main() {
         final notes = config['autoskill_notes'];
         expect(notes, isA<String>(), reason: 'Fixture ${fixture.path} must set autoskill_notes.');
         final notesString = notes as String;
+
+        if (warnings.isEmpty) {
+          expect(
+            notesString,
+            isNot(contains('Warnings:')),
+            reason: 'Fixture ${fixture.path} should not surface warnings.',
+          );
+        } else {
+          expect(
+            notesString,
+            contains('Warnings:'),
+            reason: 'Fixture ${fixture.path} did not record warnings in the notes.',
+          );
+          for (final warning in warnings) {
+            expect(
+              notesString,
+              contains(warning),
+              reason: 'Fixture ${fixture.path} notes should contain the warning "$warning".',
+            );
+          }
+        }
 
         if (fixture.expectedNotes != null) {
           expect(
