@@ -1,0 +1,50 @@
+{
+  "name": "NP after too many normals",
+  "share": {
+    "quest": null,
+    "team": {
+      "name": "   ",
+      "onFieldSvts": [],
+      "backupSvts": []
+    },
+    "actions": [
+      {
+        "type": "attack",
+        "attacks": [
+          {
+            "svt": 0,
+            "isTD": false,
+            "cardType": "quick"
+          },
+          {
+            "svt": 0,
+            "isTD": false,
+            "cardType": "arts"
+          },
+          {
+            "svt": 0,
+            "isTD": false,
+            "cardType": "buster"
+          },
+          {
+            "svt": 0,
+            "isTD": true,
+            "cardType": "arts"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "autoskill_cmd": "0",
+    "fields": {
+      "autoskill_name": "--",
+      "battle_config_server": ""
+    },
+    "notes_contains": [
+      "Imported from Chaldea",
+      "Warnings:",
+      "Encountered an NP after 3 normal cards"
+    ]
+  }
+}
